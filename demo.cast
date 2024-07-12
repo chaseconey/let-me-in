@@ -25,7 +25,7 @@
 [8.039157, "o", "\r\n"]
 [8.039276, "o", "\u001b[?25h"]
 [8.20193, "o", "\u001b[32m?\u001b[39m \u001b[1mContainer:\u001b[22m \u001b[2m(Use arrow keys)\u001b[22m\r\n\u001b[36m❯ app-web-production\u001b[39m\r\n  app-scheduler-production\r\n  app-worker-production\u001b[?25l\u001b[34G"]
-[9.623432, "o", "\u001b[2K\u001b[1A\u001b[2K\u001b[1A\u001b[2K\u001b[1A\u001b[2K\u001b[G\u001b[32m?\u001b[39m \u001b[1mContainer:\u001b[22m \u001b[36mapp-production\u001b[39m\u001b[38G"]
+[9.623432, "o", "\u001b[2K\u001b[1A\u001b[2K\u001b[1A\u001b[2K\u001b[1A\u001b[2K\u001b[G\u001b[32m?\u001b[39m \u001b[1mContainer:\u001b[22m \u001b[36mapp-web-production\u001b[39m\u001b[38G"]
 [9.623685, "o", "\r\n\u001b[?25h"]
 [10.448729, "o", "\r\nThe Session Manager plugin was installed successfully. Use the AWS CLI to start a session.\r\n\r\n"]
 [11.353855, "o", "\r\nStarting session with SessionId: ecs-execute-command-te3prtnzxuehdoxbj7bcfmtzii\r\n"]
