@@ -29,8 +29,12 @@ const argv = yargs(process.argv.slice(2))
       describe: "ECS Service Name or ARN, used to short-circuit lookup",
     },
     p: {
+      type: "string",
+      alias: "profile",
+      describe: "AWS Profile to use",
+    },
+    print: {
       type: "boolean",
-      alias: "print",
       default: false,
       describe: "Print command instead of executing",
     },
@@ -52,6 +56,11 @@ const argv = yargs(process.argv.slice(2))
 
 // Set region
 process.env.AWS_REGION = argv.region;
+
+// Set AWS profile
+if (argv.profile) {
+  process.env.AWS_PROFILE = argv.profile;
+}
 
 // Get clusters
 let cluster;
