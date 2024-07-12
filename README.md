@@ -4,7 +4,7 @@
 
 A CLI tool to easily SSH into an ECS container using SSM Session Manager.
 
-<script src="https://asciinema.org/a/ao7mlvJMdkfon36QhInqBK78I.js" id="asciicast-ao7mlvJMdkfon36QhInqBK78I" async="true"></script>
+[![asciicast](./demo.gif)](https://asciinema.org/a/ao7mlvJMdkfon36QhInqBK78I)
 
 ## Quickstart
 
