@@ -25,7 +25,6 @@
     "@aws-sdk/client-ecs": "^3.614.0",
     "@inquirer/select": "^2.3.10",
     "chalk": "^5.3.0",
-    "inquirer": "^10.0.1",
     "yargs": "^17.7.2"
   }
 }
