@@ -1,5 +1,5 @@
 {
-  "name": "let-me-in",
+  "name": "@chaseconey/let-me-in",
   "version": "1.0.0",
   "main": "./src/index.js",
   "bin": "./src/index.js",
