@@ -1,0 +1,27 @@
+{
+  "name": "let-me-in",
+  "version": "1.0.0",
+  "main": "./src/index.js",
+  "bin": "./src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "aws",
+    "ssm",
+    "ecs",
+    "bastion",
+    "interactive shell"
+  ],
+  "author": "Chase Coney",
+  "license": "MIT",
+  "description": "A CLI tool to easily SSH into an ECS container using SSM Session Manager.",
+  "dependencies": {
+    "@aws-sdk/client-ecs": "^3.614.0",
+    "@inquirer/select": "^2.3.10",
+    "chalk": "^5.3.0",
+    "inquirer": "^10.0.1",
+    "yargs": "^17.7.2"
+  }
+}
