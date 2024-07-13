@@ -1,4 +1,6 @@
-![](./let-me-in.jpg)
+<p align="center">
+  <img src="./let-me-in.jpg" />
+</p>
 
 # let-me-in
 
