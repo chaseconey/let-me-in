@@ -6,6 +6,14 @@ A CLI tool to easily SSH into an ECS container using SSM Session Manager.
 
 [![asciicast](./demo.gif)](https://asciinema.org/a/ao7mlvJMdkfon36QhInqBK78I)
 
+## Pre-requisites
+
+In order to use this tool, you will need:
+
+- the [AWS CLI](https://aws.amazon.com/cli/) installed on your machine (if you are executing the command)
+- the [Session Manager plugin for the CLI](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html) installed
+- your task/service to have the `enable-execute-command` flag set
+
 ## Quickstart
 
 ```
@@ -35,6 +43,14 @@ npx @chaseconey/let-me-in -r us-west-2
 ```
 
 This will search for resources in the `us-west-2` region. For a list of available regions, check out the [AWS docs](https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/).
+
+#### Printing, Rather than Executing
+
+Sometimes you may want to just get the full AWS CLI command with all the identifier filled in, rather than executing the interactive shell. This can be useful if you want need to login multiple times and don't want to go through the questions over and over. It can also be helpful if you want to hand the command over to someone else to use.
+
+```
+npx @chaseconey/let-me-in --print
+```
 
 ### AWS Credential Handling
 
