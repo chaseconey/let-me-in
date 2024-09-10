@@ -4,7 +4,7 @@ import {
   ListServicesCommand,
   ListTasksCommand,
   DescribeTasksCommand,
-} from "@aws-sdk/client-ecs"; // ES Modules import
+} from "@aws-sdk/client-ecs";
 import yargs from "yargs/yargs";
 import select from "@inquirer/select";
 
@@ -60,27 +60,27 @@ export async function promptTasks(cluster, service) {
     throw new Error("No tasks found");
   }
 
-  if (response.taskArns.length === 1) {
-    return response.taskArns[0];
+  const fullTaskCommand = new DescribeTasksCommand({
+    cluster,
+    tasks: response.taskArns,
+  });
+  const fullTaskResp = await client.send(fullTaskCommand);
+
+  if (fullTaskResp.tasks.length === 1) {
+    return response.tasks[0];
   }
 
   return await select({
     message: "Task:",
-    choices: response.taskArns.map((arn) => ({
-      name: arn.split(":").pop().replace("task/", ""),
-      value: arn,
+    choices: fullTaskResp.tasks.map((t, i) => ({
+      name: fmtTaskName(t, i),
+      value: t,
     })),
   });
 }
 
-export async function promptContainers(cluster, task) {
-  const command = new DescribeTasksCommand({
-    cluster,
-    tasks: [task],
-  });
-  const response = await client.send(command);
-
-  const containers = response.tasks[0].containers;
+export async function promptContainers(task) {
+  const containers = task.containers;
 
   if (containers.length === 0) {
     throw new Error("No containers found");
@@ -96,4 +96,15 @@ export async function promptContainers(cluster, task) {
       value: container.name,
     })),
   });
+}
+
+function fmtTaskName(task, index) {
+  const taskId = task.taskArn.split(":").pop().replace("task/", "");
+  const version = task.taskDefinitionArn
+    .split(":")
+    .pop()
+    .replace("task-definition/", "");
+  const startedAt = new Date(task.startedAt).toISOString();
+
+  return `#${index + 1} ${taskId} (v${version}) started at ${startedAt}`;
 }

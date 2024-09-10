@@ -80,11 +80,11 @@ const service = argv.service ?? (await promptServices(cluster));
 const task = await promptTasks(cluster, service);
 
 // Get all containers for selected task
-const container = argv.container ?? (await promptContainers(cluster, task));
+const container = argv.container ?? (await promptContainers(task));
 
 // Get into task with SSM
 // Example: aws ecs execute-command --cluster prod --task $(codecov-prod-task-id) --container ${2:-api} --interactive --command ${1:-"/bin/bash"}
-const cmd = `aws ecs execute-command --cluster ${cluster} --task ${task} --container ${container} --interactive --command ${argv.command}`;
+const cmd = `aws ecs execute-command --cluster ${cluster} --task ${task.taskArn} --container ${container} --interactive --command ${argv.command}`;
 
 if (argv.print) {
   console.log(cmd);
