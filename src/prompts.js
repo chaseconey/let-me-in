@@ -67,7 +67,7 @@ export async function promptTasks(cluster, service) {
   const fullTaskResp = await client.send(fullTaskCommand);
 
   if (fullTaskResp.tasks.length === 1) {
-    return response.tasks[0];
+    return fullTaskResp.tasks[0];
   }
 
   return await select({
