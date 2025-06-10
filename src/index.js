@@ -7,6 +7,7 @@ import {
   promptTasks,
   promptContainers,
 } from "./prompts.js";
+import { checkPrerequisites } from "./prerequisites.js";
 import { spawn } from "child_process";
 import chalk from "chalk";
 
@@ -60,6 +61,14 @@ process.env.AWS_REGION = argv.region;
 // Set AWS profile
 if (argv.profile) {
   process.env.AWS_PROFILE = argv.profile;
+}
+
+// Check prerequisites (AWS CLI and Session Manager plugin)
+if (!argv.print) {
+  const prerequisitesPassed = await checkPrerequisites();
+  if (!prerequisitesPassed) {
+    process.exit(1);
+  }
 }
 
 // Get clusters

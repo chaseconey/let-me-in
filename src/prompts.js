@@ -7,6 +7,11 @@ import {
 } from "@aws-sdk/client-ecs";
 import yargs from "yargs/yargs";
 import select from "@inquirer/select";
+import chalk from "chalk";
+import {
+  hasExecuteCommandEnabled,
+  displayExecuteCommandError,
+} from "./prerequisites.js";
 
 const client = new ECSClient();
 
@@ -67,16 +72,19 @@ export async function promptTasks(cluster, service) {
   const fullTaskResp = await client.send(fullTaskCommand);
 
   if (fullTaskResp.tasks.length === 1) {
-    return fullTaskResp.tasks[0];
+    const task = fullTaskResp.tasks[0];
+    return validateTaskExecuteCommand(task);
   }
 
-  return await select({
+  const selectedTask = await select({
     message: "Task:",
     choices: fullTaskResp.tasks.map((t, i) => ({
       name: fmtTaskName(t, i),
       value: t,
     })),
   });
+
+  return validateTaskExecuteCommand(selectedTask);
 }
 
 export async function promptContainers(task) {
@@ -106,5 +114,20 @@ function fmtTaskName(task, index) {
     .replace("task-definition/", "");
   const startedAt = new Date(task.startedAt).toISOString();
 
-  return `#${index + 1} ${taskId} (v${version}) started at ${startedAt}`;
+  const executeCommandStatus = hasExecuteCommandEnabled(task)
+    ? chalk.green("✓ exec enabled")
+    : chalk.red("✗ exec disabled");
+
+  return `#${
+    index + 1
+  } ${taskId} (v${version}) ${executeCommandStatus} - started at ${startedAt}`;
+}
+
+function validateTaskExecuteCommand(task) {
+  if (!hasExecuteCommandEnabled(task)) {
+    const taskId = task.taskArn.split(":").pop().replace("task/", "");
+    displayExecuteCommandError(taskId);
+    process.exit(1);
+  }
+  return task;
 }
