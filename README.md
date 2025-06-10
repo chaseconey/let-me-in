@@ -4,6 +4,8 @@
 
 # let-me-in
 
+[![codecov](https://codecov.io/gh/chaseconey/let-me-in/graph/badge.svg?token=H1N2VORZE1)](https://codecov.io/gh/chaseconey/let-me-in)
+
 A CLI tool to easily SSH into an ECS container using SSM Session Manager.
 
 [![asciicast](./demo.gif)](https://asciinema.org/a/ao7mlvJMdkfon36QhInqBK78I)
