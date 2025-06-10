@@ -11,6 +11,11 @@ import { checkPrerequisites } from "./prerequisites.js";
 import { spawn } from "child_process";
 import chalk from "chalk";
 
+import updateNotifier from "update-notifier";
+import packageJson from "./../package.json" assert { type: "json" };
+
+updateNotifier({ pkg: packageJson }).notify();
+
 const argv = yargs(process.argv.slice(2))
   .options({
     r: {
