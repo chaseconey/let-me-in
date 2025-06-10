@@ -162,7 +162,6 @@ export async function checkPrerequisites() {
   // Check if we have a valid cache
   const cachedResult = loadCache();
   if (cachedResult && cachedResult.prerequisitesPassed) {
-    console.log(chalk.green("✓ Prerequisites check passed (cached)"));
     return true;
   }
 
