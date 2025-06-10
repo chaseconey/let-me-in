@@ -10,9 +10,6 @@ import {
 import { checkPrerequisites } from "./prerequisites.js";
 import { spawn } from "child_process";
 import chalk from "chalk";
-import { checkForUpdates } from "./updater.js";
-
-checkForUpdates();
 
 const argv = yargs(process.argv.slice(2))
   .options({
