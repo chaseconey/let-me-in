@@ -71,29 +71,26 @@ if (!argv.print) {
   }
 }
 
-// Get clusters
-let cluster;
+let cmd = "";
 try {
-  if (!cluster) {
-    cluster = argv.cluster ?? (await promptClusters());
-  }
+  const cluster = argv.cluster ?? (await promptClusters());
+
+  // Get all services for selected cluster
+  const service = argv.service ?? (await promptServices(cluster));
+
+  // Get all tasks for selected service
+  const task = await promptTasks(cluster, service);
+
+  // Get all containers for selected task
+  const container = argv.container ?? (await promptContainers(task));
+
+  // Get into task with SSM
+  // Example: aws ecs execute-command --cluster prod --task $(codecov-prod-task-id) --container ${2:-api} --interactive --command ${1:-"/bin/bash"}
+  cmd = `aws ecs execute-command --cluster ${cluster} --task ${task.taskArn} --container ${container} --interactive --command ${argv.command}`;
 } catch (e) {
   console.error(chalk.red(e.message));
   process.exit(1);
 }
-
-// Get all services for selected cluster
-const service = argv.service ?? (await promptServices(cluster));
-
-// Get all tasks for selected service
-const task = await promptTasks(cluster, service);
-
-// Get all containers for selected task
-const container = argv.container ?? (await promptContainers(task));
-
-// Get into task with SSM
-// Example: aws ecs execute-command --cluster prod --task $(codecov-prod-task-id) --container ${2:-api} --interactive --command ${1:-"/bin/bash"}
-const cmd = `aws ecs execute-command --cluster ${cluster} --task ${task.taskArn} --container ${container} --interactive --command ${argv.command}`;
 
 if (argv.print) {
   console.log(cmd);
