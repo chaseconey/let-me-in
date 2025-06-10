@@ -10,6 +10,16 @@ import {
 import { checkPrerequisites } from "./prerequisites.js";
 import { spawn } from "child_process";
 import chalk from "chalk";
+import { readFile } from "fs/promises";
+import updateNotifier from "update-notifier";
+
+export const getJsonFile = async (path) => {
+  const contents = await readFile(new URL(path, import.meta.url));
+
+  return JSON.parse(contents.toString());
+};
+const packageJson = await getJsonFile("../package.json");
+updateNotifier({ pkg: packageJson }).notify();
 
 const argv = yargs(process.argv.slice(2))
   .options({
@@ -50,6 +60,7 @@ const argv = yargs(process.argv.slice(2))
       default: "/bin/sh",
     },
   })
+  .version("version", chalk.yellow("Show version number"), packageJson.version)
   .help()
   .alias("h", "help")
   .showHelpOnFail(true)
