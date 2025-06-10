@@ -14,7 +14,7 @@ import chalk from "chalk";
 import updateNotifier from "update-notifier";
 import packageJson from "./../package.json" assert { type: "json" };
 
-const notifier = updateNotifier({ pkg: packageJson }).notify();
+updateNotifier({ pkg: packageJson }).notify();
 
 const argv = yargs(process.argv.slice(2))
   .options({
