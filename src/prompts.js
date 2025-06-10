@@ -112,7 +112,12 @@ function fmtTaskName(task, index) {
     .split(":")
     .pop()
     .replace("task-definition/", "");
-  const startedAt = new Date(task.startedAt).toISOString();
+  const startedAt = new Date(task.startedAt).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   const executeCommandStatus = hasExecuteCommandEnabled(task)
     ? chalk.green("✓ exec enabled")
@@ -120,7 +125,7 @@ function fmtTaskName(task, index) {
 
   return `#${
     index + 1
-  } ${taskId} (v${version}) ${executeCommandStatus} - started at ${startedAt}`;
+  } ${taskId} (v${version}) ${executeCommandStatus} - started ${startedAt}`;
 }
 
 function validateTaskExecuteCommand(task) {
