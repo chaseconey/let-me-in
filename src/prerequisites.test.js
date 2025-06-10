@@ -6,6 +6,27 @@ jest.unstable_mockModule("child_process", () => ({
   spawn: mockSpawn,
 }));
 
+// Mock fs functions for caching
+const mockExistsSync = jest.fn();
+const mockMkdirSync = jest.fn();
+const mockReadFileSync = jest.fn();
+const mockWriteFileSync = jest.fn();
+jest.unstable_mockModule("fs", () => ({
+  existsSync: mockExistsSync,
+  mkdirSync: mockMkdirSync,
+  readFileSync: mockReadFileSync,
+  writeFileSync: mockWriteFileSync,
+}));
+
+// Mock os and path modules for caching
+jest.unstable_mockModule("os", () => ({
+  homedir: jest.fn(() => "/mock/home"),
+}));
+
+jest.unstable_mockModule("path", () => ({
+  join: jest.fn((...parts) => parts.join("/")),
+}));
+
 // Now import the module under test
 const {
   checkAwsCli,
@@ -25,6 +46,16 @@ describe("Prerequisites Module", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSpawn.mockClear();
+
+    // Clear file system mocks
+    mockExistsSync.mockClear();
+    mockMkdirSync.mockClear();
+    mockReadFileSync.mockClear();
+    mockWriteFileSync.mockClear();
+
+    // Default mock behavior - no cache exists
+    mockExistsSync.mockReturnValue(false);
+
     consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -247,6 +278,75 @@ describe("Prerequisites Module", () => {
 
       expect(result).toBe(false);
       expect(mockSpawn).toHaveBeenCalledTimes(2); // Both checks should run
+    });
+
+    it("should use cached result when cache is valid", async () => {
+      // Mock cache file exists and contains valid data
+      mockExistsSync.mockReturnValue(true);
+      const oneHourAgo = Date.now() - 60 * 60 * 1000; // 1 hour ago
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          timestamp: oneHourAgo,
+          prerequisitesPassed: true,
+        })
+      );
+
+      const result = await checkPrerequisites();
+
+      expect(result).toBe(true);
+      expect(mockSpawn).not.toHaveBeenCalled(); // Should not run actual checks
+      expect(mockReadFileSync).toHaveBeenCalled();
+    });
+
+    it("should ignore expired cache and run fresh checks", async () => {
+      // Mock cache file exists but contains expired data
+      mockExistsSync.mockReturnValue(true);
+      const eightDaysAgo = Date.now() - 8 * 24 * 60 * 60 * 1000; // 8 days ago
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          timestamp: eightDaysAgo,
+          prerequisitesPassed: true,
+        })
+      );
+
+      // Mock successful prerequisite checks
+      const mockChild = {
+        on: jest.fn((event, callback) => {
+          if (event === "close") {
+            callback(0); // Success
+          }
+        }),
+      };
+      mockSpawn.mockReturnValue(mockChild);
+
+      const result = await checkPrerequisites();
+
+      expect(result).toBe(true);
+      expect(mockSpawn).toHaveBeenCalledTimes(2); // Should run actual checks
+      expect(mockWriteFileSync).toHaveBeenCalled(); // Should save new cache
+    });
+
+    it("should ignore corrupted cache and run fresh checks", async () => {
+      // Mock cache file exists but contains invalid JSON
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockImplementation(() => {
+        throw new Error("Invalid JSON");
+      });
+
+      // Mock successful prerequisite checks
+      const mockChild = {
+        on: jest.fn((event, callback) => {
+          if (event === "close") {
+            callback(0); // Success
+          }
+        }),
+      };
+      mockSpawn.mockReturnValue(mockChild);
+
+      const result = await checkPrerequisites();
+
+      expect(result).toBe(true);
+      expect(mockSpawn).toHaveBeenCalledTimes(2); // Should run actual checks
     });
   });
 

@@ -1,5 +1,68 @@
 import { spawn } from "child_process";
 import chalk from "chalk";
+import { homedir } from "os";
+import { join } from "path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+
+/**
+ * Get the cache directory path
+ */
+function getCacheDir() {
+  const cacheDir = join(homedir(), ".cache", "let-me-in");
+  if (!existsSync(cacheDir)) {
+    mkdirSync(cacheDir, { recursive: true });
+  }
+  return cacheDir;
+}
+
+/**
+ * Get the cache file path
+ */
+function getCacheFilePath() {
+  return join(getCacheDir(), "prerequisites-cache.json");
+}
+
+/**
+ * Check if the cache is valid (not older than 1 week)
+ */
+function isCacheValid(cacheData) {
+  const oneWeekInMs = 7 * 24 * 60 * 60 * 1000; // 1 week in milliseconds
+  const now = Date.now();
+  return now - cacheData.timestamp < oneWeekInMs;
+}
+
+/**
+ * Load cache from file
+ */
+function loadCache() {
+  try {
+    const cacheFilePath = getCacheFilePath();
+    if (!existsSync(cacheFilePath)) {
+      return null;
+    }
+    const cacheData = JSON.parse(readFileSync(cacheFilePath, "utf8"));
+    return isCacheValid(cacheData) ? cacheData : null;
+  } catch (error) {
+    // If cache is corrupted, ignore it
+    return null;
+  }
+}
+
+/**
+ * Save cache to file
+ */
+function saveCache() {
+  try {
+    const cacheData = {
+      timestamp: Date.now(),
+      prerequisitesPassed: true,
+    };
+    const cacheFilePath = getCacheFilePath();
+    writeFileSync(cacheFilePath, JSON.stringify(cacheData, null, 2));
+  } catch (error) {
+    // Silently ignore cache save errors
+  }
+}
 
 /**
  * Check if AWS CLI is installed and accessible
@@ -96,6 +159,13 @@ ${chalk.dim(
  * Run all prerequisite checks
  */
 export async function checkPrerequisites() {
+  // Check if we have a valid cache
+  const cachedResult = loadCache();
+  if (cachedResult && cachedResult.prerequisitesPassed) {
+    console.log(chalk.green("✓ Prerequisites check passed (cached)"));
+    return true;
+  }
+
   console.log(chalk.dim("Checking prerequisites..."));
 
   const awsCliInstalled = await checkAwsCli();
@@ -104,12 +174,18 @@ export async function checkPrerequisites() {
     return false;
   }
 
+  console.log(chalk.green("✓ AWS CLI is installed"));
+
   const sessionManagerInstalled = await checkSessionManagerPlugin();
   if (!sessionManagerInstalled) {
     displaySessionManagerPluginError();
     return false;
   }
 
-  console.log(chalk.green("✓ Prerequisites check passed"));
+  console.log(chalk.green("✓ Session Manager plugin is installed"));
+
+  // Save successful check to cache
+  saveCache();
+
   return true;
 }
