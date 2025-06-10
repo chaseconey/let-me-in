@@ -1,6 +1,6 @@
 {
   "name": "@chaseconey/let-me-in",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "main": "./src/index.js",
   "bin": {
     "let-me-in": "src/index.js"
