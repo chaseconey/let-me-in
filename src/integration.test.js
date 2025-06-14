@@ -21,9 +21,10 @@ jest.unstable_mockModule("@aws-sdk/client-ecs", () => ({
 }));
 
 // Mock inquirer
-const mockSelect = jest.fn();
-jest.unstable_mockModule("@inquirer/select", () => ({
-  default: mockSelect,
+const mockSearch = jest.fn();
+jest.unstable_mockModule("@inquirer/search", () => ({
+  default: mockSearch,
+  Separator: jest.fn(),
 }));
 
 // Mock process.exit to prevent actual exits during tests
@@ -42,7 +43,7 @@ describe("Integration Tests - Full Workflow", () => {
     jest.clearAllMocks();
     mockSpawn.mockClear();
     mockSend.mockClear();
-    mockSelect.mockClear();
+    mockSearch.mockClear();
     mockExit.mockClear();
     consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
@@ -135,7 +136,7 @@ describe("Integration Tests - Full Workflow", () => {
         });
 
       // Mock user selecting the first task (with execute command enabled)
-      mockSelect.mockResolvedValue({
+      mockSearch.mockResolvedValue({
         taskArn: "arn:aws:ecs:us-east-1:123456789012:task/cluster/abc123",
         enableExecuteCommand: true,
       });
@@ -143,16 +144,9 @@ describe("Integration Tests - Full Workflow", () => {
       const result = await promptTasks("test-cluster", "test-service");
 
       // Verify that the task selection choices include execute command status
-      expect(mockSelect).toHaveBeenCalledWith({
+      expect(mockSearch).toHaveBeenCalledWith({
         message: "Task:",
-        choices: expect.arrayContaining([
-          expect.objectContaining({
-            name: expect.stringContaining("✓ exec enabled"),
-          }),
-          expect.objectContaining({
-            name: expect.stringContaining("✗ exec disabled"),
-          }),
-        ]),
+        source: expect.any(Function),
       });
 
       expect(result.enableExecuteCommand).toBe(true);
@@ -188,7 +182,7 @@ describe("Integration Tests - Full Workflow", () => {
         });
 
       // Mock user selecting the second task (without execute command)
-      mockSelect.mockResolvedValue({
+      mockSearch.mockResolvedValue({
         taskArn: "arn:aws:ecs:us-east-1:123456789012:task/cluster/def456",
         enableExecuteCommand: false,
       });

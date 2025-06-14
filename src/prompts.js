@@ -6,7 +6,7 @@ import {
   DescribeTasksCommand,
 } from "@aws-sdk/client-ecs";
 import yargs from "yargs/yargs";
-import select from "@inquirer/select";
+import search from "@inquirer/search";
 import chalk from "chalk";
 import {
   hasExecuteCommandEnabled,
@@ -26,13 +26,12 @@ export async function promptClusters() {
     throw new Error("No clusters found");
   }
 
-  return await select({
-    message: "Cluster:",
-    choices: response.clusterArns.map((arn) => ({
-      name: arn.split(":").pop().replace("cluster/", ""),
-      value: arn,
-    })),
-  });
+  const choices = response.clusterArns.map((arn) => ({
+    name: arn.split(":").pop().replace("cluster/", ""),
+    value: arn,
+  }));
+
+  return await searchableSelect("Cluster:", choices);
 }
 
 export async function promptServices(cluster) {
@@ -43,20 +42,18 @@ export async function promptServices(cluster) {
   });
   const response = await client.send(command);
 
-  return await select({
-    message: "Service:",
-    choices: response.serviceArns.map((arn) => ({
-      name: arn.split(":").pop().replace("service/", ""),
-      value: arn,
-    })),
-  });
+  const choices = response.serviceArns.map((arn) => ({
+    name: arn.split(":").pop().replace("service/", ""),
+    value: arn,
+  }));
+
+  return await searchableSelect("Service:", choices);
 }
 
 export async function promptTasks(cluster, service) {
   const command = new ListTasksCommand({
     serviceName: service,
     cluster,
-    // nextToken: "STRING_VALUE",
     maxResults: 100,
   });
   const response = await client.send(command);
@@ -76,13 +73,12 @@ export async function promptTasks(cluster, service) {
     return validateTaskExecuteCommand(task);
   }
 
-  const selectedTask = await select({
-    message: "Task:",
-    choices: fullTaskResp.tasks.map((t, i) => ({
-      name: fmtTaskName(t, i),
-      value: t,
-    })),
-  });
+  const choices = fullTaskResp.tasks.map((t, i) => ({
+    name: fmtTaskName(t, i),
+    value: t,
+  }));
+
+  const selectedTask = await searchableSelect("Task:", choices);
 
   return validateTaskExecuteCommand(selectedTask);
 }
@@ -98,11 +94,27 @@ export async function promptContainers(task) {
     return containers[0].name;
   }
 
-  return await select({
-    message: "Container:",
-    choices: containers.map((container) => ({
-      value: container.name,
-    })),
+  const choices = containers.map((container) => ({
+    value: container.name,
+  }));
+
+  return await searchableSelect("Container:", choices);
+}
+
+async function searchableSelect(message, choices) {
+  return await search({
+    message,
+    source: async (input) => {
+      if (!input) {
+        return choices;
+      }
+
+      return choices.filter((choice) => {
+        const arn = choice.name.toLowerCase();
+        const search = input.toLowerCase();
+        return arn.includes(search);
+      });
+    },
   });
 }
 

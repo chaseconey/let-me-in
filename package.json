@@ -30,7 +30,7 @@
   "description": "A CLI tool to easily SSH into an ECS container using SSM Session Manager.",
   "dependencies": {
     "@aws-sdk/client-ecs": "^3.645.0",
-    "@inquirer/select": "^2.5.0",
+    "@inquirer/search": "^3.0.15",
     "chalk": "^5.3.0",
     "update-notifier": "^7.3.1",
     "yargs": "^17.7.2"
