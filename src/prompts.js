@@ -7,6 +7,8 @@ import {
 } from "@aws-sdk/client-ecs";
 import yargs from "yargs/yargs";
 import select from "@inquirer/select";
+import readline from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
 import chalk from "chalk";
 import {
   hasExecuteCommandEnabled,
@@ -14,6 +16,28 @@ import {
 } from "./prerequisites.js";
 
 const client = new ECSClient();
+
+async function searchableSelect({ message, choices, ...rest }) {
+  let filtered = choices;
+  if (choices.length > 10) {
+    const rl = readline.createInterface({ input, output });
+    const term = (await rl.question(`Search ${message.toLowerCase()} (leave blank to show all): `)).trim();
+    rl.close();
+    if (term) {
+      const q = term.toLowerCase();
+      const results = choices.filter((c) => {
+        const name = typeof c === "string" ? c : c.name ?? "";
+        return name.toLowerCase().includes(q);
+      });
+      if (results.length > 0) {
+        filtered = results;
+      } else {
+        console.log(chalk.yellow("No matches found, showing all choices."));
+      }
+    }
+  }
+  return select({ message, choices: filtered, ...rest });
+}
 
 export async function promptClusters() {
   const command = new ListClustersCommand({
@@ -26,7 +50,7 @@ export async function promptClusters() {
     throw new Error("No clusters found");
   }
 
-  return await select({
+  return searchableSelect({
     message: "Cluster:",
     choices: response.clusterArns.map((arn) => ({
       name: arn.split(":").pop().replace("cluster/", ""),
@@ -43,7 +67,7 @@ export async function promptServices(cluster) {
   });
   const response = await client.send(command);
 
-  return await select({
+  return searchableSelect({
     message: "Service:",
     choices: response.serviceArns.map((arn) => ({
       name: arn.split(":").pop().replace("service/", ""),
@@ -76,7 +100,7 @@ export async function promptTasks(cluster, service) {
     return validateTaskExecuteCommand(task);
   }
 
-  const selectedTask = await select({
+  const selectedTask = await searchableSelect({
     message: "Task:",
     choices: fullTaskResp.tasks.map((t, i) => ({
       name: fmtTaskName(t, i),
@@ -98,7 +122,7 @@ export async function promptContainers(task) {
     return containers[0].name;
   }
 
-  return await select({
+  return searchableSelect({
     message: "Container:",
     choices: containers.map((container) => ({
       value: container.name,
