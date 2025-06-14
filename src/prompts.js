@@ -96,6 +96,7 @@ export async function promptContainers(task) {
 
   const choices = containers.map((container) => ({
     value: container.name,
+    name: container.name,
   }));
 
   return await searchableSelect("Container:", choices);
